@@ -2,9 +2,15 @@
 set -e
 
 # don't start ts3server with root permissions
-if [ "$1" = 'ts3server' -a "$(id -u)" = '0' ]; then
-    chown -R ts3server /var/ts3server
-    exec su-exec ts3server "$0" "$@"
+if [ "$1" = 'ts3server' ] && [ "$(id -u)" = '0' ]; then
+    if [ -z "$PUID" ]; then
+        echo "PUID variable must be set, ts3server will not run as root"
+        exit 1
+    fi
+
+    chown -R "$PUID${PGID:+:$PGID}" /var/ts3server /var/run/ts3server /opt/ts3server 
+
+    exec su-exec "$PUID${PGID:+:$PGID}" "$0" "$@"
 fi
 
 # have the default inifile as the last parameter

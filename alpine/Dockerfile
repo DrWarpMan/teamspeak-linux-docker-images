@@ -1,13 +1,8 @@
 FROM alpine:3.18
 
-ARG PUID=9987
-ARG PGID=9987
-
 RUN apk add --no-cache ca-certificates libstdc++ su-exec libpq
 RUN set -eux; \
-    addgroup -g ${PUID} ts3server; \
-    adduser -u ${PGID} -Hh /var/ts3server -G ts3server -s /sbin/nologin -D ts3server; \
-    install -d -o ts3server -g ts3server -m 775 /var/ts3server /var/run/ts3server /opt/ts3server
+    install -d -m 775 /var/ts3server /var/run/ts3server /opt/ts3server 
 
 ENV PATH="${PATH}:/opt/ts3server"
 
