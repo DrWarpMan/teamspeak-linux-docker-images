@@ -1,13 +1,18 @@
-FROM alpine:3.18
+FROM alpine:3.23
 
-RUN apk add --no-cache ca-certificates libstdc++ su-exec libpq
 RUN set -eux; \
-    install -d -m 775 /var/ts3server /var/run/ts3server /opt/ts3server 
+    apk add --no-cache ca-certificates libstdc++ su-exec libpq; \
+    install -d -m 775 /var/ts3server /var/run/ts3server /opt/ts3server
 
-ENV PATH="${PATH}:/opt/ts3server"
+ENV PATH="${PATH}:/opt/ts3server" \
+    TS3SERVER_FILETRANSFER_PORT=30033
 
-ARG TEAMSPEAK_CHECKSUM=359aac972679cfd98d62af51ddaf80e674cab166e13c6a835e81759097f9ba2e
-ARG TEAMSPEAK_URL=https://files.teamspeak-services.com/releases/server/3.13.7/teamspeak3-server_linux_alpine-3.13.7.tar.bz2
+LABEL com.teamspeak.title="TeamSpeak 3 Server"
+LABEL com.teamspeak.version="3.13.8"
+LABEL com.teamspeak.description="TeamSpeak 3 Server on Alpine Linux"
+
+ARG TEAMSPEAK_CHECKSUM=b04af5fbcbca3e847336389569eca3bff6339cba6f13f0151d6b012360e038ae
+ARG TEAMSPEAK_URL=https://files.teamspeak-services.com/releases/server/3.13.8/teamspeak3-server_linux_alpine-3.13.8.tar.bz2
 
 RUN set -eux; \
     apk add --no-cache --virtual .fetch-deps tar; \
@@ -18,7 +23,8 @@ RUN set -eux; \
     rm server.tar.bz2; \
     apk del .fetch-deps; \
     mv /opt/ts3server/*.so /opt/ts3server/redist/* /usr/local/lib; \
-    ldconfig /usr/local/lib
+    ldconfig /usr/local/lib; \
+    rm -rf /opt/ts3server/redist
 
 # setup directory where user data is stored
 VOLUME /var/ts3server/
@@ -27,7 +33,7 @@ WORKDIR /var/ts3server/
 #  9987 default voice
 # 10011 server query
 # 30033 file transport
-EXPOSE 9987/udp 10011 30033 
+EXPOSE 9987/udp 10011 30033
 
 COPY entrypoint.sh /opt/ts3server
 
